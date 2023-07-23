@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>单源最短路径</title>
+    <style>
+        /*整体布局*/
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+        }
+
+        .el-main {
+            background-color: #E9EEF3;
+            color: #333;
+        }
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <template>
+        <el-container>
+            <el-header>
+                <!-- 超链接-->
+                <el-col :span="4">
+                    <div class="grid-content bg-purple">
+                        <a href="vertex.html" title="地图上的地点的管理">景点管理</a>
+                    </div>
+                </el-col>
+                <el-col :span="5">
+                    <div class="grid-content bg-purple">
+                        <a href="edge.html" title="地图上的道路的管理">道路管理</a>
+                    </div>
+                </el-col>
+                <el-col :span="5">
+                    <div class="grid-content bg-purple">
+                        <a href="map.html" title="可视化地图粗略概括">地图</a>
+                    </div>
+                </el-col>
+                <el-col :span="5">
+                    <div class="grid-content bg-purple">
+                        <a href="shortestRoute.html" title="如果您想获得从某地到其他各地的最短路径，请点击这里">单源最短路径</a>
+                    </div>
+                </el-col>
+                <el-col :span="5">
+                    <div class="grid-content bg-purple">
+                        <a href="mutipleRoute.html" title="如果您想获得某两地间的最短路径，请点击这里">两地间最短路径路径</a>
+                    </div>
+                </el-col>
+            </el-header>
+
+
+            <el-main>
+                <!-- 表单-->
+                <el-form :inline="true" :model="selectForm" class="demo-form-inline">
+                    <el-form-item label="地点1">
+                        <el-input placeholder="请输入查询地点" v-model="selectForm.source"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-select placeholder="查询依据" v-model="selectForm.type">
+                            <el-option label="名称name" value="name"></el-option>
+                            <el-option label="标志mark" value="mark"></el-option>
+                        </el-select>
+                        <el-button @click="selectSingle" type="primary">查询</el-button>
+                    </el-form-item>
+                </el-form>
+
+                <el-steps  v-for="items in shortestPath">
+                <div v-if="items.length>1" style="display: block;">
+                    <el-step  v-for="item in items" :description="'标志'+item.mark+':\t'+item.data" :title="item.name" style="min-width: 300px; min-height: 150px"></el-step>
+                </div>
+            </el-steps>
+
+
+
+            </el-main>
+
+        </el-container>
+
+    </template>
+</div>
+
+
+<script src="js/axios.min.js"></script>
+<script src="js/vue@2.7.14.js"></script>
+<script src="element-ui/lib/index.js"></script>
+<link href="element-ui/lib/theme-chalk/index.css" rel="stylesheet">
+<script>
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                selectForm: {
+                    source: '0',
+                    type: 'mark'
+                },
+                onePath: {  //{{shortestPath[0][0].id}}
+                    id: '',
+                    name: '',
+                    mark: '',
+                    data: '',
+                    left: '',
+                    top: ''
+
+                },
+                shortestPath: [[this.onePath]],
+                active: []
+            }
+        },
+        methods: {
+            selectSingle() {
+                axios.post("http://localhost:80/GraphServlet/singleShortestPath", this.selectForm)
+                    .then(resp => {
+                        this.shortestPath = resp.data;
+                    })
+            }
+        },
+        mounted() {
+            this.selectSingle();
+
+        }
+    });
+</script>
+</body>
+</html>

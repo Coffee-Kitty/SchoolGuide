@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>欢迎注册</title>
+    <link href="css/register.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <div class="form-div">
+        <div class="reg-content">
+            <h1>欢迎注册</h1>
+            <span>已有帐号？</span> <a href="/弃用/login.html">登录</a>
+        </div>
+        <form id="reg-form" action="RegisterServlet" method="post">
+            <table>
+                <tr>
+                    <td>用户名</td>
+                    <td class="inputs">
+                        <input name="username" v-model="username" type="text" id="username"><br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>密码</td>
+                    <td class="inputs">
+                        <input name="password" v-model="password" type="password" id="password"><br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>验证码</td>
+                    <td class="inputs">
+                        <input name="checkCode" v-model="checkCode" type="text" id="checkCode">
+                        <img id="checkCodeImg" :src="checkCodeUrl">
+                        <a href="#" id="changeImg" @click="changeCheckCode">看不清？</a>
+                    </td>
+                </tr>
+            </table>
+            <div class="buttons">
+                <div id="errorMsg" v-html="register_msg"></div>
+                <input value="注 册" type="submit" id="reg_btn" @click.prevent="register">
+
+            </div>
+            <br class="clear">
+        </form>
+    </div>
+</div>
+<script src="js/axios.min.js"></script>
+<script src="js/vue@2.7.14.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            username: '',
+            password: '',
+            checkCode: '',
+            checkCodeUrl: '/CheckCodeServlet',
+            register_msg: ''
+        },
+        methods: {
+            changeCheckCode() {
+                this.checkCodeUrl = '/CheckCodeServlet?' + new Date().getMilliseconds();
+            },
+            register: function () {
+                axios.post('http://localhost:80/RegisterServlet', {
+                    username: this.username,
+                    password: this.password,
+                    checkCode: this.checkCode
+                }).then(resp => {
+                    // console.log(resp.data);
+                    // console.log(resp.data.register_msg);
+                    let res = JSON.parse(resp.data);
+                    // console.log(res.register_msg);
+                    if(res.register_msg === "注册成功，请登录")
+                    {
+                        window.location.replace('login.html');
+                    }else{
+                        this.register_msg=res.register_msg;
+                    }
+                });
+
+
+            }
+        }
+    });
+</script>
+</body>
+</html>

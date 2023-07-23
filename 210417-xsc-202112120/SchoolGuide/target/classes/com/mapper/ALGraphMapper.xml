@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mapper.ALGraphMapper">
+
+    <resultMap id="ALGraphResult" type="com.pojo.ALGraph">
+    </resultMap>
+
+    <resultMap id="EdgeResult" type="com.pojo.Edge">
+        <id property="id" column="id"></id>
+        <result property="rideTime" column="ride_time"></result>
+        <result property="walkTime" column="walk_time"></result>
+    </resultMap>
+
+
+
+
+    <!--    1.查询顶点总数-->
+    <select id="selectVertexNum" resultType="java.lang.Integer">
+        select count(*) from vertex
+    </select>
+<!--    2.查询边总数-->
+    <select id="selectEdgeNum" resultType="java.lang.Integer">
+        select count(*) from edge
+    </select>
+<!--    3.根据顶点的id查询到  其邻接边-->
+    <select id="selectAdjEdgeByMark" resultMap="EdgeResult">
+        SELECT  e.*
+        FROM vertex v
+        JOIN edge e ON v.mark = e.mark1 AND v.mark=#{mark}
+    </select>
+
+
+</mapper>

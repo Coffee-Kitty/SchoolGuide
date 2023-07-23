@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>校园导游系统</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+    <style>
+
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <canvas height="900" id="myCanvas" width="1800">
+
+    </canvas>
+
+</div>
+
+</body>
+
+<script>
+
+
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                map: ""
+            }
+        },
+        mounted() {
+            this.init();
+        },
+        methods: {
+
+            // 画出直线
+            drawLine(x1, y1, x2, y2, strokeStyle, linewidth) {
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);//起点
+                ctx.lineTo(x2, y2);//指定终点
+                //ctx.strokeStyle = 'rgb(222,224,0)';//更改颜色
+                ctx.strokeStyle = strokeStyle;//更改颜色
+                ctx.lineWidth = linewidth;
+                ctx.stroke();
+            },
+            //画出景点
+            drawCircle(left, top, radius, circleFillStyle, textLeft, textTop, textLimit, textContent, font, textFillStyle, textBaseLine, textAlgn) {
+                const startAngle = 0;
+                const endAngle = Math.PI * 2;
+                ctx.beginPath();//将canvas路径重置
+                ctx.arc(left, top, radius, startAngle, endAngle);
+                ctx.fillStyle = circleFillStyle;
+                ctx.fill();
+                drawText(textLeft, textTop, textLimit, textContent, font, textFillStyle, textBaseLine, textAlgn);
+            },
+            //画文本
+            drawText(textLeft, textTop, textLimit, textContent, font, textFillStyle, textBaseLine, textAlgn) {
+                ctx.font = font;
+                ctx.fillStyle = textFillStyle;
+                ctx.textBaseline = textBaseLine;
+                ctx.textAlign = textAlgn;
+
+                ctx.fillText(textContent, textLeft, textTop, textLimit);
+            },
+
+            init() {
+                var _this = this;
+                axios({
+                    method: "get",
+                    url: "http://localhost:80/GraphServlet",
+                }).then(resp => {
+                    //JSON.stringify() 方法将一个 JavaScript 对象或值转换为 JSON 字符串
+                    //JSON.parse() 方法用来解析 JSON 字符串
+                    // var map=JSON.stringify(resp.data);
+                    // map=JSON.parse(map);
+                    _this.map = resp.data;
+                    var map = _this.map;
+                    var edgeNum = map.edgeNum;
+                    var vertexNum = map.vertexNum;
+
+
+                    // 获取 canvas 元素和绘图上下文
+                    var canvas = document.getElementById('myCanvas');
+                    var ctx = canvas.getContext('2d');
+
+                    //显示各地点
+                    function drawVertex() {
+                        for (let i = 0; i < vertexNum; i++) {
+                            let id = map.vertexList[i].id;
+                            let data = map.vertexList[i].data;
+                            let mark = map.vertexList[i].mark;
+                            let name = map.vertexList[i].name;
+                            let left = map.vertexList[i].left;
+                            let top = map.vertexList[i].top;
+
+                            const radius = 30;//圆半径
+                            // 画出景点
+                            _this.drawCircle(left, top, radius, 'rgb(116,232,245)',
+                                left + radius / 2, top + radius / 2, radius * 2, mark + name,
+                                '18px sans-serif', 'black', 'middle', 'center');
+
+                            canvas.addEventListener('mousemove', function (event) {
+                                // 获取鼠标位置
+                                let rect = canvas.getBoundingClientRect();
+                                //console.log(rect);
+                                let x = event.clientX - rect.left;
+                                let y = event.clientY - rect.top;
+                                // 判断鼠标是否在顶点上
+                                if (ctx.isPointInPath(x, y)) {
+
+                                    //创建一个矩形并在其内部添加相关文本信息
+                                    ctx.beginPath();
+                                    ctx.fillStyle = "white";
+                                    ctx.strokeRect(x + 20, y + 20, 50, 50);
+                                    ctx.font = '18px sans-serif';
+                                    ctx.textBaseline = "middle";
+                                    ctx.textAlign = "center";
+                                    ctx.fillStyle = 'black';
+                                    ctx.fillText(data, x + 30, y + 30, 50);
+                                } else {
+                                    ctx.clearRect(x + 20, y + 20, 50, 50);
+                                }
+
+                            });
+                        }
+                    }
+
+                    drawVertex();
+
+
+                    //显示各边
+                    for (let i = 0; i < edgeNum; i++) {
+                        let id = map.edgeList[i].id;
+                        let mark1 = map.edgeList[i].mark1;
+                        let mark2 = map.edgeList[i].mark2;
+                        let distance = map.edgeList[i].distance;
+                        let rideTime = map.edgeList[i].rideTime;
+                        let walkTime = map.edgeList[i].walkTime;
+                        const funcx = markx => {   //js所有传递均为值传递
+                            for (let i = 0; i < vertexNum; i++) {
+                                let mark = map.vertexList[i].mark;
+                                if (mark === markx) {
+                                    return [map.vertexList[i].left, map.vertexList[i].top];
+                                }
+                            }
+
+                        };
+                        let x1, y1, x2, y2;
+                        x1 = funcx(mark1)[0];
+                        y1 = funcx(mark1)[1];
+                        x2 = funcx(mark2)[0];
+                        y2 = funcx(mark2)[1];
+                        console.log(x1, x2, y1, y2);
+
+                        canvas.addEventListener('mousemove', function (event) {
+                            // 获取鼠标位置
+                            let rect = canvas.getBoundingClientRect();
+                            //console.log(rect);
+                            let x = event.clientX - rect.left;
+                            let y = event.clientY - rect.top;
+
+                            // 画出直线
+                            ctx.beginPath();
+                            ctx.moveTo(x1, y1);//起点
+                            ctx.lineTo(x2, y2);//指定终点
+                            ctx.strokeStyle = 'rgb(222,224,0)';//更改颜色
+                            ctx.lineWidth = 5;
+                            ctx.stroke();
+
+                            // 判断鼠标是否在直线上
+                            if (ctx.isPointInPath(x, y)) {
+                                alert(1);
+                                // 鼠标在直线上，显示相关信息
+                                ctx.font = '18px sans-serif';
+                                ctx.fillStyle = 'green';
+                                ctx.fillText('This is a line', x, y + 30);
+
+                            }
+                        });
+
+                    }
+
+
+                })
+            }
+        }
+    });
+
+    // myVue.drawLine(10,10,20,20,'red',5);
+
+</script>
+</html>

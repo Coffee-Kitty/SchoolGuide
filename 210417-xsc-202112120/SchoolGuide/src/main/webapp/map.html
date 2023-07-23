@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>校园导游系统</title>
+
+    <style>
+        /*整体布局*/
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+        }
+
+        .el-main {
+            background-color: #E9EEF3;
+            color: #333;
+        }
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <template>
+        <el-container>
+            <el-header>
+                <!-- 超链接-->
+                <el-col :span="4">
+                    <div class="grid-content bg-purple">
+                        <a href="vertex.html" title="地图上的地点的管理">景点管理</a>
+                    </div>
+                </el-col>
+                <el-col :span="5">
+                    <div class="grid-content bg-purple">
+                        <a href="edge.html" title="地图上的道路的管理">道路管理</a>
+                    </div>
+                </el-col>
+                <el-col :span="5">
+                    <div class="grid-content bg-purple">
+                        <a href="map.html" title="可视化地图粗略概括">地图</a>
+                    </div>
+                </el-col>
+                <el-col :span="5">
+                    <div class="grid-content bg-purple">
+                        <a href="shortestRoute.html" title="如果您想获得从某地到其他各地的最短路径，请点击这里">单源最短路径</a>
+                    </div>
+                </el-col>
+                <el-col :span="5">
+                    <div class="grid-content bg-purple">
+                        <a href="mutipleRoute.html" title="如果您想获得某两地间的最短路径，请点击这里">两地间最短路径路径</a>
+                    </div>
+                </el-col>
+            </el-header>
+
+            <el-main>
+
+                <canvas height="1000" id="myCanvas" width="1800"></canvas>
+
+            </el-main>
+
+            <el-footer>
+
+            </el-footer>
+        </el-container>
+
+    </template>
+</div>
+
+
+<script src="js/axios.min.js"></script>
+<script src="js/vue@2.7.14.js"></script>
+<script src="element-ui/lib/index.js"></script>
+<link href="element-ui/lib/theme-chalk/index.css" rel="stylesheet">
+<script>
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                map:{
+                    edgeNum:0,
+                    vertexNum:0,
+                    edgeList:[{
+                        id: '',
+                        mark1: '',
+                        mark2: '',
+                        distance: '',
+                        walkTime: '',
+                        rideTime: ''
+                    }],
+                    vertexList:[{
+                        id:'',
+                        name: '',
+                        mark: '',
+                        data:'',
+                        left:'',
+                        top:''
+                    }],
+                    path:[[]],
+                    kind:1,
+                }
+            }
+        },
+        methods: {
+
+
+            drawAll() {
+                axios({
+                    method: "get",
+                    url: "http://localhost:80/GraphServlet/drawAll"
+                }).then(resp => {
+                    console.log(resp.data);
+
+                    this.map=resp.data;
+                    console.log(this.map);
+                    // 获取 canvas 元素和绘图上下文
+                    var canvas = document.getElementById('myCanvas');
+                    var ctx = canvas.getContext('2d');
+                    // 画出直线
+                    function drawLine(x1, y1, x2, y2, strokeStyle, linewidth) {
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);//起点
+                        ctx.lineTo(x2, y2);//指定终点
+                        //ctx.strokeStyle = 'rgb(222,224,0)';//更改颜色
+                        ctx.strokeStyle = strokeStyle;//更改颜色
+                        ctx.lineWidth = linewidth;
+                        ctx.stroke();
+                    };
+                    //画出景点
+                    function drawCircle(left, top, radius, circleFillStyle, textLeft, textTop, textLimit, textContent, font, textFillStyle, textBaseLine, textAlgn) {
+                        const startAngle = 0;
+                        const endAngle = Math.PI * 2;
+                        ctx.beginPath();//将canvas路径重置
+                        ctx.arc(left, top, radius, startAngle, endAngle);
+                        ctx.fillStyle = circleFillStyle;
+                        ctx.fill();
+                        drawText(textLeft, textTop, textLimit, textContent, font, textFillStyle, textBaseLine, textAlgn);
+                    }
+                    //画文本
+                    function drawText(textLeft, textTop, textLimit, textContent, font, textFillStyle, textBaseLine, textAlgn) {
+                        ctx.font = font;
+                        ctx.fillStyle = textFillStyle;
+                        ctx.textBaseline = textBaseLine;
+                        ctx.textAlign = textAlgn;
+
+                        ctx.fillText(textContent, textLeft, textTop, textLimit);
+                    };
+                    //根据mark返回顶点的位置
+                    const funcx = markx => {   //js所有传递均为值传递
+                        for (let i = 0; i < this.map.vertexNum; i++) {
+                            let mark = this.map.vertexList[i].mark;
+                            if (mark === markx) {
+                                return [this.map.vertexList[i].left, this.map.vertexList[i].top];
+                            }
+                        }
+
+                    };
+
+                    const radius = 30;//圆半径
+                    // 画出景点
+                    for(let i=0;i<this.map.vertexNum;i++){
+                        drawCircle(this.map.vertexList[i].left, this.map.vertexList[i].top, radius,
+                            'rgb(116,232,245)', this.map.vertexList[i].left + radius / 2, this.map.vertexList[i].top + radius / 2,
+                            radius * 2, this.map.vertexList[i].mark +this.map.vertexList[i].name,
+                            '18px sans-serif', 'black', 'middle', 'center');
+                    }
+                    //画边
+                    for(let k=0;k<this.map.edgeNum;k++){
+                        let mark1=this.map.edgeList[k].mark1;
+                        let mark2=this.map.edgeList[k].mark2;
+                        let x1, y1, x2, y2;
+                        x1 = funcx(mark1)[0];
+                        y1 = funcx(mark1)[1];
+                        x2 = funcx(mark2)[0];
+                        y2 = funcx(mark2)[1];
+                        drawLine(x1,y1,x2,y2,'rgb(222,224,0)',3);
+                    }
+
+
+
+
+
+                });
+            }
+        },
+        mounted() {
+            this.drawAll();
+        }
+    });
+
+
+</script>
+</body>
+</html>

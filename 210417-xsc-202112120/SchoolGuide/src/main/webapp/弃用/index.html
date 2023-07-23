@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>校园导游系统</title>
+
+    <script src="../js/axios.min.js"></script>
+    <script src="../js/vue@2.7.14.js"></script>
+
+</head>
+<body>
+<div id="app">
+    <div id="drawing">
+        <div class="circle" id="circle0"
+             style="width: 50px; height: 50px; border-radius: 25px; left: 900px; top: 800px; background-color: rgba(81, 160, 245, 0.51);position: absolute;">
+        </div>
+
+
+    </div>
+
+    <!--    <canvas id="myCanvas" width="300" height="150"></canvas>-->
+
+
+</div>
+
+</body>
+
+<script>
+
+    new Vue({
+        el: "#app",
+        mounted() {
+            this.init()
+        },
+        methods: {
+            init: function () {
+                var _this = this;
+                axios({
+                    method: "get",
+                    url: "http://localhost:80/GraphServlet",
+                }).then(resp => {
+                    //JSON.stringify() 方法将一个 JavaScript 对象或值转换为 JSON 字符串
+                    //JSON.parse() 方法用来解析 JSON 字符串
+                    // var map=JSON.stringify(resp.data);
+                    // map=JSON.parse(map);
+                    var map = resp.data;
+                    var edgeNum = map.edgeNum;
+                    var vertexNum = map.vertexNum;
+                    //显示各地点
+                    for (let i = 0; i < vertexNum; i++) {
+                        let id = map.vertexList[i].id;
+                        let data = map.vertexList[i].data;
+                        let mark = map.vertexList[i].mark;
+                        let name = map.vertexList[i].name;
+                        let left = map.vertexList[i].left;
+                        let top = map.vertexList[i].top;
+
+
+                        //document.getElementById("circle"+i).innerText=id.toString()+data.toString()+name.toString()+mark.toString();
+                        if (i != 0) {
+                            let father = document.getElementById("drawing");
+                            let child = father.children[0].cloneNode();
+                            child.innerText = name;
+                            child.id = "circile" + i;
+                            child.style.left = left + "px";
+                            child.style.top = top + "px";
+                            father.appendChild(child);
+                        } else {
+                            let element = document.getElementById("circle" + i);
+                            element.innerText = name;
+                            element.style.left = left + "px";
+                            element.style.top = top + "px";
+                        }
+
+                        // //显示边
+                        // // 获取 canvas 元素和绘图上下文
+                        // var canvas = document.getElementById('myCanvas');
+                        // var ctx = canvas.getContext('2d');
+                        //
+                        // 获取两个元素节点的坐标
+                        var element1 = document.getElementById('circle1');
+                        var element2 = document.getElementById('circle2');
+                        //
+                        // // 计算直线的起点和终点坐标
+                        // const fun= value=>{
+                        //     return parseInt(value.substring(0,value.length-2));
+                        // };
+                        // let x1=fun(element1.style.left);
+                        // let y1=fun(element1.style.top);
+                        // let x2=fun(element2.style.left);
+                        // let y2=fun(element1.style.top);
+                        //
+                        // // 在 canvas 中绘制直线
+                        // ctx.moveTo(x1, y1);
+                        // ctx.lineTo(x2, y2);
+                        // ctx.lineWidth = 2;
+                        // ctx.strokeStyle = 'red';
+                        // ctx.stroke();
+
+                    }
+
+
+                })
+            }
+        }
+    })
+</script>
+</html>

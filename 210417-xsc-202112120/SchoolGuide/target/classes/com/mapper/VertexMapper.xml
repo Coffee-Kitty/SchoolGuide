@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mapper.VertexMapper">
+    <resultMap id="VertexResult" type="com.pojo.Vertex">
+        <id property="id" column="id"></id>
+        <result property="name" column="name"></result>
+        <result property="mark" column="mark"></result>
+        <result property="data" column="data"></result>
+    </resultMap>
+
+    <delete id="deleteByIds">
+        delete from vertex where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <select id="selectAll" resultMap="VertexResult">
+        select * from vertex
+    </select>
+
+    <select id="selectByName"  resultMap="VertexResult">
+        select * from vertex where `name`=#{name}
+    </select>
+
+
+    <select id="selectTotalCount" resultType="java.lang.Integer">
+        select count(*) from vertex
+    </select>
+
+
+
+    <insert id="add">
+        insert into vertex(`id`,`name`,`mark`,`data`,`left`,`top`) values(#{id},#{name},#{mark},#{data},#{left},#{top})
+    </insert>
+</mapper>

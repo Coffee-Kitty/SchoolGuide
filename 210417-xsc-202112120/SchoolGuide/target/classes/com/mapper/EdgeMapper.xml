@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mapper.EdgeMapper">
+
+    <resultMap id="EdgeResult" type="com.pojo.Edge">
+        <id property="id" column="id"></id>
+        <result property="rideTime" column="ride_time"></result>
+        <result property="walkTime" column="walk_time"></result>
+    </resultMap>
+
+
+    <select id="selectAll" resultMap="EdgeResult">
+        select * from edge
+    </select>
+
+
+    <select id="selectByPage" resultMap="EdgeResult">
+       select * from edge limit #{begin} , #{size}
+    </select>
+
+    <!--查询总记录数-->
+    <select id="selectTotalCount" resultType="java.lang.Integer">
+        select count(*) from edge
+    </select>
+
+
+    <insert id="add">
+        insert into edge(mark1,mark2,distance,walk_time,ride_time)
+        values(#{mark1},#{mark2},#{distance},#{walkTime},#{rideTime})
+    </insert>
+
+
+    <delete id="deleteByIds">
+        delete from edge where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
+        <!--        &lt;!&ndash;        解决自增不连续问题&ndash;&gt;-->
+        <!--        SET @auto_id = 0;-->
+        <!--        UPDATE vertex SET id = (@auto_id := @auto_id + 1);-->
+        <!--        ALTER TABLE vertex AUTO_INCREMENT = 1;-->

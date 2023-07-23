@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+
+</head>
+<form action="RegisterServlet" id="form" method="post">
+    <h1 id="loginMsg">LOGIN IN</h1>
+    <p>Username:<input id="username" name="username" type="text" v-model=username></p>
+    <p>Password:<input id="password" name="password" type="password" v-model=password></p>
+    <p>Remember:<input id="remember" name="remember" type="checkbox" value="on"></p>
+    <div id="errorMsg" v-html="login_msg"></div>
+    <div id="subDiv">
+        <input class="button" type="submit" value="login up">
+        <input class="button" type="reset" value="reset">&nbsp;&nbsp;&nbsp;
+        <a href="../register.html">没有账号？</a>
+    </div>
+</form>
+</div>
+</div>
+
+
+<script src="../js/axios.min.js"></script>
+<script src="../js/vue@2.7.14.js"></script>
+<script>
+    new Vue({
+        el: "#app",
+        data: {
+            return: {
+                login_msg: "",
+                username: "",
+                password: ""
+
+            }
+        },
+        mounted() {
+
+        },
+        methods: {
+            login() {
+                axios.post()
+                    .then(resp => {
+
+                    });
+            }
+        }
+    })
+</script>
+
+</body>
+</html>
